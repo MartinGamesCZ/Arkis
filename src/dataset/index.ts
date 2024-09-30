@@ -1,5 +1,6 @@
 import Catalog from "@/catalog";
 import Distro from "@/distro";
+import { DataFormat } from "@/types/distro";
 import axios, { Axios } from "axios";
 import crypto from "crypto";
 import { XMLParser } from "fast-xml-parser";
@@ -19,7 +20,7 @@ export default class Dataset {
       };
     };
     types: () => Promise<{ [key: string]: string }>;
-    find: (type: string) => Promise<Distro | null>;
+    find: (type: DataFormat) => Promise<Distro | null>;
   } = {
     ids: [],
     list: {},
@@ -47,7 +48,7 @@ export default class Dataset {
       return types;
     },
 
-    find: async (type: string) => {
+    find: async (type: DataFormat) => {
       const names = await this.distros.types();
 
       const found = Object.entries(names).find(([, v]) => v === type);
