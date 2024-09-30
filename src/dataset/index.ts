@@ -1,7 +1,8 @@
 import Catalog from "@/catalog";
 import Distro from "@/distro";
-import axios from "axios";
+import axios, { Axios } from "axios";
 import crypto from "crypto";
+import { XMLParser } from "fast-xml-parser";
 
 export default class Dataset {
   url: string;
@@ -17,9 +18,44 @@ export default class Dataset {
         accessURL: string;
       };
     };
+    types: () => Promise<{ [key: string]: string }>;
+    find: (type: string) => Promise<Distro | null>;
   } = {
     ids: [],
     list: {},
+
+    types: async () => {
+      const types: { [key: string]: string } = {};
+
+      for (const id of this.distros.ids) {
+        const distro = this.distro(id);
+
+        const { data: fmtXML } = await axios
+          .get(distro.distro.format)
+          .catch((e) => ({
+            data: {
+              success: false,
+              message: e.message,
+            },
+          }));
+
+        types[id] = new XMLParser().parse(fmtXML)["rdf:RDF"]["rdf:Description"][
+          "dc:identifier"
+        ];
+      }
+
+      return types;
+    },
+
+    find: async (type: string) => {
+      const names = await this.distros.types();
+
+      const found = Object.entries(names).find(([, v]) => v === type);
+
+      if (!found) return null;
+
+      return this.distro(found[0]);
+    },
   };
 
   constructor(url: string, catalog: Catalog) {

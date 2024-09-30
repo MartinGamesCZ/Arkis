@@ -14,9 +14,44 @@ export default class Catalog {
     urls: {
       [key: string]: string;
     };
+    find: (
+      searchFn: (dset: IFindableDataset) => boolean,
+    ) => Promise<Dataset | null>;
+    names: () => Promise<{ [key: string]: string }>;
   } = {
     ids: [],
     urls: {},
+
+    find: async (searchFn) => {
+      for (const id of this.datasets.ids) {
+        const dset = await this.dataset(id);
+
+        if (
+          searchFn({
+            id: datasetUrlToId(dset.data["@id"]),
+            name: dset.data.dcterms.title[
+              Object.keys(dset.data.dcterms.title)[0]
+            ], // TODO: Add support for multiple languages
+          })
+        )
+          return dset;
+      }
+
+      return null;
+    },
+
+    names: async () => {
+      const names: { [key: string]: string } = {};
+
+      for (const id of this.datasets.ids) {
+        const dset = await this.dataset(id);
+
+        names[id] =
+          dset.data.dcterms.title[Object.keys(dset.data.dcterms.title)[0]];
+      }
+
+      return names;
+    },
   };
 
   constructor(url: string) {
