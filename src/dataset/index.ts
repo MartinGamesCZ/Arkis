@@ -51,11 +51,15 @@ export default class Dataset {
     find: async (type: DataFormat) => {
       const names = await this.distros.types();
 
+      const isDB = type == DataFormat.DB;
+
+      if (isDB) type = DataFormat.JSON;
+
       const found = Object.entries(names).find(([, v]) => v === type);
 
       if (!found) return null;
 
-      return this.distro(found[0]);
+      return this.distro(found[0], isDB);
     },
   };
 
@@ -64,11 +68,11 @@ export default class Dataset {
     this.catalog = catalog;
   }
 
-  distro(id: string) {
+  distro(id: string, isDB = false) {
     if (!this.distros.ids.includes(id))
       throw new Error("Distribution not found");
 
-    return new Distro(this.distros.list[id], this);
+    return new Distro(this.distros.list[id], this, isDB);
   }
 
   async get() {
