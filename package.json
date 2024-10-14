@@ -1,6 +1,5 @@
 {
   "name": "arkis",
-  "module": "src/index.ts",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
